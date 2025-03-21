@@ -4,7 +4,7 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb')
 const jwt = require('jsonwebtoken')
-const morgan = require('morgan')
+const morgan = require('morgan')  /// amar kon time a kothai hit korsi seitar location dei
 
 const port = process.env.PORT || 9000
 const app = express()
@@ -48,8 +48,27 @@ const client = new MongoClient(uri, {
 })
 async function run() {
   try {
+
+    const db = client.db('plantNet')
+    const userCollection = db.collection('users');
+    const plantsCollection = db.collection('plants');
+
+    /// save or update the user collection in db ===================>>>>>>>>>>>>>
+
+    app.post('/users/:email', async (req, res) => {
+      const email = req.params.email
+      const query = {email}
+      const user = req.body
+      const existingUser = await userCollection.findOne(query)
+      if (existingUser) {
+        return res.send(existingUser)
+      }
+      const result = await userCollection.insertOne({...user, role: "customer", timestamp: new Date()})  /// spread operator. user object er mordhe timestamp property e date ta rakha holo..
+      res.send(result)
+    })
+
     // Generate jwt token
-    app.post('/jwt', async (req, res) => {
+    app.post('/jwt', async (req, res) => {  // this request call is authProvider in fontend
       const email = req.body
       const token = jwt.sign(email, process.env.ACCESS_TOKEN_SECRET, {
         expiresIn: '365d',
@@ -75,6 +94,14 @@ async function run() {
       } catch (err) {
         res.status(500).send(err)
       }
+    })
+
+    /// sava a plants post data in db ==================>>>>>>>>>>
+
+    app.post('/plants', verifyToken, async (req, res) => {
+      const plant = req.body
+      const result = await plantsCollection.insertOne(plant)
+      res.send(result)
     })
 
     // Send a ping to confirm a successful connection
