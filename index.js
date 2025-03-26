@@ -52,6 +52,7 @@ async function run() {
     const db = client.db('plantNet')
     const userCollection = db.collection('users');
     const plantsCollection = db.collection('plants');
+    const odersCollection = db.collection('oders');
 
     /// save or update the user collection in db ===================>>>>>>>>>>>>>
 
@@ -120,6 +121,14 @@ async function run() {
       const id = req.params.id
       const query = { _id: new ObjectId(id) };
       const result = await plantsCollection.findOne(query)
+      res.send(result)
+    })
+
+    /// save the oder info in db =================>>>>>>>>>>
+
+    app.post('/order', verifyToken, async (req, res) => {
+      const order = req.body
+      const result = await odersCollection.insertOne(order)
       res.send(result)
     })
 
