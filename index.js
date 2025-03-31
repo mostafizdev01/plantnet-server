@@ -169,6 +169,25 @@ async function run() {
       res.send(result)
     })
 
+    // update the seller request in database ==========>>>>>>>>>>>>
+
+    app.patch('/update-seller/:email', async (req,res)=>{
+      const email = req.params.email
+      const {status} = req.body
+      const filter = { email }
+
+      const user = await userCollection.findOne(filter);
+      if(user?.role === 'Requested'){
+        return res.status(409).send('You are already requesting. please wait for admin response 👊')
+      }
+
+      const updateDoc = { 
+        $set: { role: status } 
+      }
+      const result = await userCollection.updateOne(filter, updateDoc)
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
     console.log(
