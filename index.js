@@ -132,6 +132,43 @@ async function run() {
       res.send(result)
     })
 
+    /// manage the plant quantity ==========>>>>>>
+
+    app.patch('/plants/quantity/:id', verifyToken, async (req, res) => {
+      const id = req.params.id
+      const { quantityToUpdate, status } = req.body
+      const filter = { _id: new ObjectId(id)}
+      console.log(id, filter);
+      
+      let updateDoc = {
+        $inc: {quantity: -quantityToUpdate} // request body er mordhe to just quantiy koita seita asbe. bad dibo bole quantityToUpdate er age (-)simble use korsi
+      }
+      if(status === 'increase'){
+        updateDoc = {
+          $inc: { quantity: Number(quantityToUpdate)},
+      }}
+      const result = await plantsCollection.updateOne(filter, updateDoc)
+      res.send(result)
+    })
+
+    /// get the my oders data ===========>>>>>>>>>>>>
+
+    app.get('/myoders/:email', async (req, res) => {
+      const email = req.params.email
+      const query = { "userInfo.email": email }
+      const oders = await odersCollection.find(query).toArray()
+      res.send(oders)
+    })
+
+    /// delete the orders data from the database ========>>>>>>>>>>
+
+    app.delete('/myoders/:id', async (req, res)=>{
+      const id = req.params.id
+      const filter = { _id: new ObjectId(id) };
+      const result = await odersCollection.deleteOne(filter)
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db('admin').command({ ping: 1 })
     console.log(
